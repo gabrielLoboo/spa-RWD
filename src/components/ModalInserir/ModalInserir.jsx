@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import styles from "./ModalInserir.module.css"
 import "./ModalInserir.scss"
+import { useState } from "react";
 
 export default function ModalInserir(props) {
 
@@ -7,21 +9,53 @@ export default function ModalInserir(props) {
    
    let novoId;
 
-   fetch("http://localhost:5000/produtos",{
-    method: "GET",
-    headers:{
-        "Content-Type":"application/json"
-    }
-   })
-   .then((response)=> response.json())
-   .then((data)=>{
-    console.log(data)
-    novoId = (data[data.length-1].id+1)
-    return novoId;
-    
+   useEffect(() => {
+    fetch("http://localhost:5000/produtos", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
     })
-.catch(error=> console.log(error));
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        novoId = data[data.length - 1].id + 1;
+        return novoId;
+      })
+      .catch((error) => console.log(error));
+  }, []);
 
+  const [produto, setProduto] = useState({
+    id:novoId,
+    nome: "",
+    preco:"",
+    img: ""
+  });
+
+//   setProduto({...produto, ["nome"]:"jose"})
+
+  const handleChange = (e) =>{
+    const {name , value} = e.target
+    setProduto({...produto, [name]:value});
+  }
+
+  const handleSubmit = (e)=> {
+    e.preventDefaul();
+    fetch("http://localhost:5000/produtos",{
+        method:"POST",
+        headers:{
+            "Content-type":"application/json"
+        },
+        body: JSON.stringify(produto)
+    })
+    .then((response)=>response.json())
+    .then((response)=>console.log(response))
+    .catch(error=> console.log(error));
+
+    props.setOpen(false);
+    window.location = "/produtos";
+
+  }
 
 
     if(props.open){
@@ -30,24 +64,24 @@ export default function ModalInserir(props) {
             <h1>CADASTRO DE PRODUTOS</h1>
             <span className="btnClose" onClick={() => props.setOpen(false)}>X</span>
             <div className="formGroup">
-                <form>
+                <form onSubmit={handleSubmit}>
                     <fieldset>
                         <legend>Novo Produto</legend>
                         <div>
                             <label htmlFor="idNome">Nome</label>
-                            <input type="text" name="nome" id="idNome" placeholder="Digite o nome do produto"/>
+                            <input type="text" name="nome" id="idNome" placeholder="Digite o nome do produto" value={produto.nome} onChange={handleChange}/>
                         </div>
                         <div>
                             <label htmlFor="idDesc">Descrição</label>
-                            <input type="text" name="desc" id="idDesc" placeholder="Digite a descrição do produto"/>
+                            <input type="text" name="desc" id="idDesc" placeholder="Digite a descrição do produto" value={produto.desc} onChange={handleChange}/>
                         </div>
                         <div>
                             <label htmlFor="idPreco">Preço</label>
-                            <input type="number" name="preco" id="idPreco" placeholder="Digite o valor do produto"/>
+                            <input type="number" name="preco" id="idPreco" placeholder="Digite o valor do produto" value={produto.preco} onChange={handleChange}/>
                         </div>             
                         <div>
                             <label htmlFor="idImg">Imagem</label>
-                            <input type="url" name="img" id="idImg" placeholder="Digite a url da imagem do produto"/>
+                            <input type="url" name="img" id="idImg" placeholder="Digite a url da imagem do produto" value={produto.img} onChange={handleChange}/>
                         </div>   
                         <div>
                             <button>CADASTRAR</button>    
